@@ -18,13 +18,7 @@ public class ChallengeLiterAluraApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		var consumoApi = new ConsumoApi();
-		var json = consumoApi.obterDados("http://gutendex.com/books/?search=dom+casmurro");
-		System.out.println(json);
-		ConverteDados conversor = new ConverteDados();
-		DadosJson dados = conversor.obterDados(json, DadosJson.class);
-		System.out.println(dados);
-		//Principal principal = new Principal();
-		//principal.menu();
+		Principal principal = new Principal();
+		principal.menu();
 	}
 }

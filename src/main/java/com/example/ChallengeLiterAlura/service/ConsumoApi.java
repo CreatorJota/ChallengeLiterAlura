@@ -11,6 +11,7 @@ public class ConsumoApi {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(endereco))
+                .header("User-Agent", "Mozilla/5.0")
                 .build();
         HttpResponse<String> response = null;
         try {
