@@ -13,8 +13,8 @@ public class Autor {
     private Long id;
     @Column(unique = true)
     private String nome;
-    private String anoNascimento;
-    private String anoFalecimento;
+    private Integer anoNascimento;
+    private Integer anoFalecimento;
     @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Livro> livros =new ArrayList<>();
 
@@ -42,29 +42,27 @@ public class Autor {
         this.nome = nome;
     }
 
-    public String getAnoNascimento() {
+    public Integer getAnoNascimento() {
         return anoNascimento;
     }
 
-    public void setAnoNascimento(String anoNascimento) {
+    public void setAnoNascimento(int anoNascimento) {
         this.anoNascimento = anoNascimento;
     }
 
-    public String getAnoFalecimento() {
+    public Integer getAnoFalecimento() {
         return anoFalecimento;
     }
 
-    public void setAnoFalecimento(String anoFalecimento) {
+    public void setAnoFalecimento(int anoFalecimento) {
         this.anoFalecimento = anoFalecimento;
     }
 
     @Override
     public String toString() {
-        return
-                "id=" + id +
-                ", nome='" + nome + '\'' +
-                ", anoNascimento='" + anoNascimento + '\'' +
-                ", anoFalecimento='" + anoFalecimento;
+        return  "Nome = '" + nome + '\'' +
+                ", AnoNascimento = '" + anoNascimento + '\'' +
+                ", AnoFalecimento = '" + anoFalecimento;
 
     }
 }
