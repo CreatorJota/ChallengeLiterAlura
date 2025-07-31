@@ -1,11 +1,14 @@
 package com.example.ChallengeLiterAlura.principal;
 
-import com.example.ChallengeLiterAlura.model.DadosJson;
-import com.example.ChallengeLiterAlura.model.DadosLivros;
+import ch.qos.logback.core.BasicStatusManager;
+import com.example.ChallengeLiterAlura.model.*;
+import com.example.ChallengeLiterAlura.repository.AutorRepository;
+import com.example.ChallengeLiterAlura.repository.LivroRepository;
 import com.example.ChallengeLiterAlura.service.ConsumoApi;
 import com.example.ChallengeLiterAlura.service.ConverteDados;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Principal {
     private Scanner leitura = new Scanner(System.in);
@@ -13,6 +16,13 @@ public class Principal {
     private ConsumoApi consumo = new ConsumoApi();
     private ConverteDados conversor = new ConverteDados();
     private List<DadosLivros> livros = new ArrayList<>();
+    private LivroRepository repositorioLivro;
+    private AutorRepository repositorioAutor;
+
+    public Principal(LivroRepository repositorio, AutorRepository repository){
+        this.repositorioLivro = repositorio;
+        this.repositorioAutor = repository;
+    }
 
     public void menu() {
         var opcao = -1;
@@ -59,31 +69,52 @@ public class Principal {
         var json = consumo.obterDados(ENDERECO + "?search=" + nomeLivro.toLowerCase()
                 .replace(" ", "+"));
         DadosJson dadosJson = conversor.obterDados(json, DadosJson.class);
-        var livroEncontrado = dadosJson.resultado().stream()
+
+        Optional<DadosLivros> livroEncontrado = dadosJson.resultado().stream()
                 .filter(livro -> livro.titulo().equalsIgnoreCase(nomeLivro))
                 .max(Comparator.comparingInt(DadosLivros::numeroDownload));
-        var livroMaisBaixado = livroEncontrado.get();
-        livros.add(livroMaisBaixado);
-        System.out.println(
-                "Titulo: " + dadosJson.resultado().get(0).titulo()
-                + "\nAutor: " + dadosJson.resultado().get(0).autores().get(0).nome()
-                + "\nIdioma: " + dadosJson.resultado().get(0).linguagem().get(0)
-                + "\nNumero de download: " + dadosJson.resultado().get(0).numeroDownload());
+
+        livroEncontrado.ifPresent(dadosLivro -> {
+            DadosAutores dadosAutor = dadosLivro.autores().get(0);
+            Optional<Autor> autorOptional = repositorioAutor.findByNomeContainingIgnoreCase(dadosAutor.nome());
+            Autor autor;
+            if (autorOptional.isPresent()) {
+                autor = autorOptional.get();
+            } else {
+                autor = new Autor(dadosAutor);
+                autor = repositorioAutor.save(autor);
+            }
+            Optional<Livro> livroExistente = repositorioLivro.findByTituloContainingIgnoreCase(dadosLivro.titulo());
+
+            Livro livroFinal;
+            if (livroExistente.isEmpty()) {
+                livroFinal = new Livro(dadosLivro, autor);
+                livroFinal = repositorioLivro.save(livroFinal);
+            } else {
+                livroFinal = livroExistente.get();
+            }
+            System.out.println(
+                    "Título: " + livroFinal.getTitulo() +
+                            "\nAutor: " + livroFinal.getAutor().getNome() +
+                            "\nIdioma: " + livroFinal.getLinguagem() +
+                            "\nNúmero de downloads: " + livroFinal.getNumeroDownload()
+            );
+        });
     }
 
-    private void listarLivrosRegistrado() {
+        private void listarLivrosRegistrado() {
 
-        System.out.println("\n=== Livros encontrados ===");
-        int contador = 1;
-        for (DadosLivros livro : livros) {
-            System.out.println("Livro " + contador++);
-            System.out.println("Titulo: " + livro.titulo());
-            System.out.println("Autor: " + livro.autores().get(0).nome());
-            System.out.println("Idioma: " + livro.linguagem().get(0));
-            System.out.println("Numero de download: " + livro.numeroDownload());
-            System.out.println();
+            System.out.println("\n=== Livros encontrados ===");
+            int contador = 1;
+            for (DadosLivros livro : livros) {
+                System.out.println("Livro " + contador++);
+                System.out.println("Titulo: " + livro.titulo());
+                System.out.println("Autor: " +  livro.autores().get(0).nome());
+                System.out.println("Idioma: " + livro.linguagem().get(0));
+                System.out.println("Numero de download: " + livro.numeroDownload());
+                System.out.println();
+            }
         }
-    }
 
     private void listarAutoresRegistrados() {
         System.out.println("\n=== Autores encontrados ===");
